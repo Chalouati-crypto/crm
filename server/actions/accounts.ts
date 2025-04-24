@@ -1,0 +1,63 @@
+"use server";
+import { actionClient } from "@/lib/safe-actions";
+import { db } from "..";
+import { clientAccounts } from "../schema";
+import { ClientAccountSchema } from "@/types/account-schema";
+import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+export async function getAccounts() {
+  return db.select().from(clientAccounts);
+}
+export const upsertClientAccount = actionClient
+  .schema(ClientAccountSchema)
+  .action(async ({ parsedInput }) => {
+    try {
+      const values = parsedInput;
+      console.log("hello, this is teh values", values);
+      const id = values?.id;
+      if (id) {
+        // update
+        const result = await db
+          .update(clientAccounts)
+          .set(values)
+          .where(eq(clientAccounts.id, id))
+          .returning();
+        revalidatePath("/accounts");
+        return { success: `compte ${result[0].name} modifiee` };
+      } else {
+        const result = await db
+          .insert(clientAccounts)
+          .values(values)
+          .returning();
+        revalidatePath("/accounts");
+        return { success: `compte ${result[0].name} Ajoutee` };
+      }
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Database operation failed",
+      };
+    }
+  });
+export const deleteAccount = actionClient
+  .schema(z.object({ id: z.string().uuid() }))
+
+  .action(async ({ parsedInput }) => {
+    console.log("this is the values", parsedInput);
+    try {
+      const data = await db
+        .delete(clientAccounts)
+        .where(eq(clientAccounts.id, parsedInput.id))
+        .returning();
+      revalidatePath("/accounts");
+
+      return { success: `account ${data[0].name} successfully deleted` };
+    } catch (error) {
+      console.log(error);
+      return { error: "failed to delete student" };
+    }
+  });
