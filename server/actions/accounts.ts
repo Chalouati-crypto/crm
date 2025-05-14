@@ -1,14 +1,17 @@
 "use server";
 import { actionClient } from "@/lib/safe-actions";
 import { db } from "..";
-import { clientAccounts } from "../schema";
+import { clientAccounts, userAccounts } from "../schema";
 import { ClientAccountSchema } from "@/types/account-schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-export async function getAccounts() {
-  return db.select().from(clientAccounts);
+export async function getAccounts(userid: string | undefined) {
+  if (!userid) return db.select().from(clientAccounts);
+  if (userid) {
+    return db.select().from(userAccounts).where(eq(userAccounts.id, userid));
+  }
 }
 export const upsertClientAccount = actionClient
   .schema(ClientAccountSchema)

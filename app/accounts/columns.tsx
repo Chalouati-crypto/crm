@@ -24,7 +24,8 @@ export const columns = (
   handleEdit: (account: z.infer<typeof ClientAccountSchema>) => void,
   handleDelete: (account: z.infer<typeof ClientAccountSchema>) => void,
   handleSubAccount: (account: z.infer<typeof ClientAccountSchema>) => void,
-  handleAddContact: (contact: z.infer<typeof ClientAccountSchema>) => void
+  handleAddContact: (contact: z.infer<typeof ClientAccountSchema>) => void,
+  handleAssign: (account: z.infer<typeof ClientAccountSchema>) => void
 ): ColumnDef<typeof ClientAccountSchema>[] => [
   {
     accessorKey: "id",
@@ -73,7 +74,7 @@ export const columns = (
             <DropdownMenuItem onClick={() => handleAddContact(account)}>
               <Plus /> Add Contacts
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAssign(account)}>
               <TestTube /> Assign consultants
             </DropdownMenuItem>
             <DropdownMenuSeparator />

@@ -7,8 +7,9 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ContactSchema } from "@/types/contact-schema";
 
-export async function getContacts() {
-  return db.select().from(contacts);
+export async function getContacts(accountId: string | undefined) {
+  if (!accountId) return db.select().from(contacts);
+  return db.select().from(contacts).where(eq(contacts.accountId, accountId));
 }
 export const upsertContact = actionClient
   .schema(ContactSchema)

@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { set } from "zod";
 import { Contact } from "@/types/contact-schema";
 import AddContact from "../contacts/add-contact";
+import AssignConsultants from "../consultants/assign-consultants";
 
 export default function AccountsTable({
   accounts,
@@ -36,7 +37,7 @@ export default function AccountsTable({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [subAccountOpen, setSubAccountOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
-
+  const [assignOpen, setAssignOpen] = useState(false);
   const [parentAccountToAddContactTo, setParentAccountToAddContactTo] =
     useState<ClientAccount | undefined>(undefined);
 
@@ -48,6 +49,9 @@ export default function AccountsTable({
   >(undefined);
   const [parentAccountToExpand, setParentAccountToExpand] =
     useState<ClientAccount>();
+  const [accountToAssign, setAccountToAssign] = useState<
+    ClientAccount | undefined
+  >(undefined);
 
   const handleEdit = (account: ClientAccount) => {
     setAccountToEdit(account); // State update is asynchronous
@@ -65,6 +69,11 @@ export default function AccountsTable({
     setParentAccountToAddContactTo(account);
     setContactOpen(true);
   };
+
+  const handleAssign = (account: ClientAccount) => {
+    setAccountToAssign(account);
+    setAssignOpen(true);
+  };
   return (
     <div>
       <DataTable
@@ -72,7 +81,8 @@ export default function AccountsTable({
           handleEdit,
           handleDelete,
           handleAddSubAccount,
-          handleAddContact
+          handleAddContact,
+          handleAssign
         )}
         data={accounts}
       />
@@ -115,6 +125,16 @@ export default function AccountsTable({
           <AddContact
             parentAccount={parentAccountToAddContactTo}
             accounts={accounts}
+          />
+        </DialogContent>
+      </Dialog>
+      <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
+        <DialogContent className="max-h-[10vh">
+          <DialogTitle>Assign consultants</DialogTitle>
+          <AssignConsultants
+            handleClose={() => setAssignOpen(false)}
+            accountId={accountToAssign?.id}
+            accountName={accountToAssign?.name}
           />
         </DialogContent>
       </Dialog>

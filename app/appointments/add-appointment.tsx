@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -33,22 +34,25 @@ interface AddAppointmentProps {
   contacts: Contact[];
   userId: string;
   id?: string;
+  contactToAppoint?: Contact;
 }
 export default function AddAppointment({
   handleClose,
   appointment,
   contacts,
   userId,
-  id,
+  contactToAppoint,
 }: AddAppointmentProps) {
+  const now = new Date();
+  const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
   const methods = useForm({
     resolver: zodResolver(AppointmentSchema),
     defaultValues: {
       ...(appointment ? { id: appointment.id } : {}),
-      contactId: appointment?.contactId || "",
+      contactId: contactToAppoint?.id || appointment?.contactId || "",
       purpose: appointment?.purpose || "",
-      startTime: appointment?.startTime || new Date(),
-      endTime: appointment?.endTime || new Date(),
+      startTime: appointment?.startTime || now,
+      endTime: appointment?.endTime || oneHourLater,
       notes: appointment?.notes || "",
       status: appointment?.status || "scheduled",
       userId: userId,
@@ -59,12 +63,22 @@ export default function AddAppointment({
     control,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = methods;
+
+  useEffect(() => {
+    if (contactToAppoint) {
+      // Explicitly set both the Select value and form value
+      setValue("contactId", contactToAppoint.id, { shouldValidate: true });
+    }
+  }, [contactToAppoint, setValue]);
   const { execute, status } = useAction(upsertAppointment, {
     onSuccess() {
+      console.log("the onsucess callback is working");
       toast.success(
         `${appointment?.id ? "Modification" : "Ajout"} avec success`
       );
+      console.log("this is the handle close function", handleClose);
       handleClose?.();
     },
     onError(error) {
@@ -81,6 +95,7 @@ export default function AddAppointment({
   useEffect(() => {
     console.log("Form errors:", errors);
   }, [errors]);
+  console.log("this is the contact to be appointed", contactToAppoint);
   return (
     <Form {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -91,10 +106,24 @@ export default function AddAppointment({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Contact</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  disabled={!!contactToAppoint}
+                  value={contactToAppoint?.id || field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select contact" />
+                      <SelectValue placeholder="Select contact">
+                        {/* Display name when value is set */}
+                        {contactToAppoint
+                          ? `${contactToAppoint.firstName} ${contactToAppoint.lastName}`
+                          : field.value
+                          ? contacts.find((c) => c.id === field.value)
+                              ?.firstName +
+                            " " +
+                            contacts.find((c) => c.id === field.value)?.lastName
+                          : "Select contact"}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -106,6 +135,11 @@ export default function AddAppointment({
                   </SelectContent>
                 </Select>
                 <FormMessage />
+                <FormDescription className="min-w-screen">
+                  {contactToAppoint
+                    ? "The contact has already been selected"
+                    : ""}
+                </FormDescription>
               </FormItem>
             )}
           />

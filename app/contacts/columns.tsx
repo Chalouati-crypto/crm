@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { archiveContact } from "@/server/actions/contacts";
 import { Contact } from "@/types/contact-schema";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -23,7 +24,8 @@ import { toast } from "sonner";
 
 export const columns = (
   handleEdit: (contact: Contact) => void,
-  handleDelete: (contact: Contact) => void
+  handleDelete: (contact: Contact) => void,
+  handleAddAppointment: (contact: Contact) => void
 ): ColumnDef<Contact>[] => [
   {
     accessorKey: "id",
@@ -64,10 +66,12 @@ export const columns = (
             </DropdownMenuItem>
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAddAppointment(contact)}>
               <Calendar /> Schedule Meeting
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => archiveContact({ id: contact.id! })}
+            >
               <Archive /> Archive Account
             </DropdownMenuItem>
             <DropdownMenuItem

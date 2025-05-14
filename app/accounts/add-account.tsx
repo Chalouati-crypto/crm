@@ -57,7 +57,7 @@ export default function AddAccount({
   const methods = useForm({
     resolver: zodResolver(ClientAccountSchema),
     defaultValues: {
-      id: account?.id || "",
+      id: account?.id || undefined,
       name: account?.name || "",
       parent_account_id:
         account?.parent_account_id ?? accountToExpand?.id ?? "",

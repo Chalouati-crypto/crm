@@ -13,6 +13,7 @@ import {
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import type { AdapterAccountType } from "next-auth/adapters";
+import { relations } from "drizzle-orm";
 
 const connectionString = "postgres://postgres:postgres@localhost:5432/drizzle";
 const pool = postgres(connectionString, { max: 1 });
@@ -26,7 +27,7 @@ export const users = pgTable("user", {
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   password: text("password"),
   image: text("image"),
-  role: text("role").default("consultant"),
+  role: text("role").$type<"admin" | "consultant">().default("consultant"),
 });
 
 export const accounts = pgTable(
@@ -143,6 +144,7 @@ export const appointments = pgTable("appointment", {
   contactId: uuid("contact_id")
     .references(() => contacts.id, { onDelete: "cascade" })
     .notNull(),
+
   userId: uuid("user_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
@@ -171,3 +173,34 @@ export const surveys = pgTable("survey", {
     .defaultNow()
     .notNull(),
 });
+// users.ts
+// userAccounts relations (CORRECT)
+export const userAccountsRelations = relations(userAccounts, ({ one }) => ({
+  user: one(users, {
+    relationName: "user_to_account", // Unique name for user side
+    fields: [userAccounts.userId],
+    references: [users.id],
+  }),
+  clientAccount: one(clientAccounts, {
+    relationName: "account_to_user", // Unique name for account side
+    fields: [userAccounts.accountId],
+    references: [clientAccounts.id],
+  }),
+}));
+
+// users relations
+export const usersRelations = relations(users, ({ many }) => ({
+  clientAccounts: many(userAccounts, {
+    relationName: "user_to_account", // Match user side
+  }),
+}));
+
+// clientAccounts relations
+export const clientAccountsRelations = relations(
+  clientAccounts,
+  ({ many }) => ({
+    users: many(userAccounts, {
+      relationName: "account_to_user", // Match account side
+    }),
+  })
+);

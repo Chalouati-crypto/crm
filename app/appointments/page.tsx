@@ -9,11 +9,9 @@ import { auth } from "@/server/auth";
 
 export default async function Appointments() {
   const appointments = await getAppointments(); // Fetch appointments from the database
-  const contacts = await getContacts(); // Fetch contacts from the database
+  const contacts = await getContacts(undefined); // Fetch contacts from the database
   const session = await auth();
-  console.log("session", session);
 
-  console.log(contacts);
   if (!session) return;
   return (
     <div>

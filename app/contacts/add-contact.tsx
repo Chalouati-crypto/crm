@@ -44,7 +44,7 @@ export default function AddContact({
   const methods = useForm({
     resolver: zodResolver(ContactSchema),
     defaultValues: {
-      id: contact?.id || "",
+      id: contact?.id || undefined,
       accountId: parentAccount?.id || contact?.accountId || "",
       firstName: contact?.firstName || "",
       lastName: contact?.lastName || "",
