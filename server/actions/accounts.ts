@@ -64,3 +64,19 @@ export const deleteAccount = actionClient
       return { error: "failed to delete student" };
     }
   });
+// server/actions/accounts.ts
+
+export async function getAccount(accountId: string | undefined) {
+  if (!accountId) return null;
+  const [account] = await db
+    .select({
+      id: clientAccounts.id,
+      name: clientAccounts.name,
+      industry: clientAccounts.industry,
+      parentAccountId: clientAccounts.parent_account_id,
+      createdAt: clientAccounts.created_at,
+    })
+    .from(clientAccounts)
+    .where(eq(clientAccounts.id, accountId));
+  return account ?? null;
+}

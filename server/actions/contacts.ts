@@ -75,3 +75,16 @@ export const archiveContact = actionClient
       return { error: "failed to archive student" };
     }
   });
+export async function getContact(contactId: string | undefined) {
+  if (!contactId) return null;
+  const [contact] = await db
+    .select({
+      id: contacts.id,
+      firstName: contacts.firstName,
+      lastName: contacts.lastName,
+      accountId: contacts.accountId,
+    })
+    .from(contacts)
+    .where(eq(contacts.id, contactId));
+  return contact ?? null;
+}

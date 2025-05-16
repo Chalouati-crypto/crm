@@ -173,6 +173,7 @@ export const surveys = pgTable("survey", {
     .defaultNow()
     .notNull(),
 });
+
 // users.ts
 // userAccounts relations (CORRECT)
 export const userAccountsRelations = relations(userAccounts, ({ one }) => ({
