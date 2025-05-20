@@ -8,15 +8,15 @@ import DeleteAlert from "@/components/delete-alert";
 import { useAction } from "next-safe-action/hooks";
 import { deleteAccount } from "@/server/actions/accounts";
 import { toast } from "sonner";
-import { set } from "zod";
-import { Contact } from "@/types/contact-schema";
 import AddContact from "../contacts/add-contact";
 import AssignConsultants from "../consultants/assign-consultants";
 
 export default function AccountsTable({
   accounts,
+  userRole,
 }: {
   accounts: ClientAccount;
+  userRole: "admin" | "consultant";
 }) {
   const { execute: deleteExecute, status: deleteStatus } = useAction(
     deleteAccount,
@@ -82,7 +82,8 @@ export default function AccountsTable({
           handleDelete,
           handleAddSubAccount,
           handleAddContact,
-          handleAssign
+          handleAssign,
+          userRole
         )}
         data={accounts}
       />

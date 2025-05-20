@@ -4,15 +4,17 @@ import { TypographyH1 } from "@/components/ui/heading-1";
 import FormDialog from "@/components/form-dialog";
 import { Plus } from "lucide-react";
 import AddAppointments from "./add-appointment";
-import { getContacts } from "@/server/actions/contacts";
-import { auth } from "@/server/auth";
+import { getAssignedContacts } from "@/server/actions/contacts";
+import { getCurrentUser } from "@/lib/get-current-user";
 
 export default async function Appointments() {
-  const appointments = await getAppointments(); // Fetch appointments from the database
-  const contacts = await getContacts(undefined); // Fetch contacts from the database
-  const session = await auth();
+  const user = await getCurrentUser();
+  if (!user) return;
 
-  if (!session) return;
+  const appointments = await getAppointments(user.id); // Fetch appointments from the database
+  const contacts = await getAssignedContacts(user.id); // Fetch contacts from the database
+  console.log("these are the contacts", contacts);
+
   return (
     <div>
       <div className="flex items-center gap-10 mb-8 mt-7">
@@ -22,7 +24,7 @@ export default async function Appointments() {
           title="Add Appointment"
           icon={<Plus />}
         >
-          <AddAppointments contacts={contacts} userId={session?.user.id} />
+          <AddAppointments accountsWithContacts={contacts} userId={user.id} />
         </FormDialog>
       </div>
       <AppointmentCalendar appointments={appointments} />

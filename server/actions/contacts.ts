@@ -1,7 +1,7 @@
 "use server";
 import { actionClient } from "@/lib/safe-actions";
 import { db } from "..";
-import { contacts } from "../schema";
+import { clientAccounts, contacts, userAccounts } from "../schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -87,4 +87,40 @@ export async function getContact(contactId: string | undefined) {
     .from(contacts)
     .where(eq(contacts.id, contactId));
   return contact ?? null;
+}
+export async function getAssignedContacts(userId: string | undefined) {
+  if (!userId) return [];
+
+  // First get all assigned accounts with their contacts
+  const results = await db
+    .select({
+      account: clientAccounts,
+      contact: contacts,
+    })
+    .from(userAccounts)
+    .innerJoin(clientAccounts, eq(userAccounts.accountId, clientAccounts.id))
+    .innerJoin(contacts, eq(clientAccounts.id, contacts.accountId))
+    .where(eq(userAccounts.userId, userId));
+
+  // Group contacts by their account
+  const groupedResults = results.reduce(
+    (acc, { account, contact }) => {
+      const existing = acc.find((a) => a.account.id === account.id);
+      if (existing) {
+        existing.contacts.push(contact);
+      } else {
+        acc.push({
+          account: account,
+          contacts: [contact],
+        });
+      }
+      return acc;
+    },
+    [] as Array<{
+      account: typeof clientAccounts.$inferSelect;
+      contacts: (typeof contacts.$inferSelect)[];
+    }>
+  );
+
+  return groupedResults;
 }

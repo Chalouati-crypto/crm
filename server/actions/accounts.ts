@@ -10,7 +10,19 @@ import { z } from "zod";
 export async function getAccounts(userid: string | undefined) {
   if (!userid) return db.select().from(clientAccounts);
   if (userid) {
-    return db.select().from(userAccounts).where(eq(userAccounts.id, userid));
+    const result = await db
+      .select({
+        clientAccount: clientAccounts, // Directly select all clientAccounts fields
+      })
+      .from(userAccounts)
+      .innerJoin(
+        clientAccounts,
+        eq(clientAccounts.id, userAccounts.accountId) // Join on accountId
+      )
+      .where(eq(userAccounts.userId, userid)); // Filter by user ID
+
+    // Extract clientAccounts from the result
+    return result.map((row) => row.clientAccount);
   }
 }
 export const upsertClientAccount = actionClient

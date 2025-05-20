@@ -1,3 +1,5 @@
+import { clientAccounts, contacts } from "@/server/schema";
+import type { Selectable } from "drizzle-orm";
 import { z } from "zod";
 
 // Client Account Schema
@@ -10,3 +12,10 @@ export const ClientAccountSchema = z.object({
 });
 
 export type ClientAccount = z.infer<typeof ClientAccountSchema>;
+
+export type ClientAccountWithContacts = {
+  /** The client account record */
+  account: Selectable<typeof clientAccounts>;
+  /** All contacts belonging to that account */
+  contacts: Selectable<typeof contacts>[];
+};

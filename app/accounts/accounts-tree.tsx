@@ -4,9 +4,13 @@ import { buildAccountTree } from "@/lib/tree-builder";
 
 interface AccountsTreeProps {
   accounts: ClientAccount[];
+  userRole: "admin" | "consultant";
 }
 
-export default function AccountsTree({ accounts }: AccountsTreeProps) {
+export default function AccountsTree({
+  accounts,
+  userRole,
+}: AccountsTreeProps) {
   const accountTree = buildAccountTree(accounts);
 
   return (

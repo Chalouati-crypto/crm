@@ -11,8 +11,8 @@ import { SurveyEmail } from "@/components/email-template";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function getAppointments() {
-  return db.select().from(appointments); // Ensure Appointments is a valid database table object
+export async function getAppointments(userId: string) {
+  return db.select().from(appointments).where(eq(appointments.userId, userId)); // Ensure Appointments is a valid database table object
 }
 export const upsertAppointment = actionClient
   .schema(AppointmentSchema)

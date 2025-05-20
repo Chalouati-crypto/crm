@@ -25,7 +25,8 @@ import { toast } from "sonner";
 export const columns = (
   handleEdit: (contact: Contact) => void,
   handleDelete: (contact: Contact) => void,
-  handleAddAppointment: (contact: Contact) => void
+  handleAddAppointment: (contact: Contact) => void,
+  userRole: "admin" | "consultant"
 ): ColumnDef<Contact>[] => [
   {
     accessorKey: "id",
@@ -58,22 +59,28 @@ export const columns = (
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => handleEdit(contact)}>
-              <Edit /> Edit contact
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleDelete(contact)}>
-              <Trash /> Delete contact
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            {userRole === "admin" && (
+              <>
+                <DropdownMenuItem onClick={() => handleEdit(contact)}>
+                  <Edit /> Edit contact
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDelete(contact)}>
+                  <Trash /> Delete contact
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
 
             <DropdownMenuItem onClick={() => handleAddAppointment(contact)}>
               <Calendar /> Schedule Meeting
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => archiveContact({ id: contact.id! })}
-            >
-              <Archive /> Archive Account
-            </DropdownMenuItem>
+            {userRole === "admin" && (
+              <DropdownMenuItem
+                onClick={() => archiveContact({ id: contact.id! })}
+              >
+                <Archive /> Archive Account
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               onClick={() => {
                 navigator.clipboard.writeText(contact.email);

@@ -10,8 +10,12 @@ import FormDialog from "@/components/form-dialog";
 import AddAccount from "./add-account";
 interface AccountsViewProps {
   accounts: ClientAccount[];
+  userRole: "admin" | "consultant";
 }
-export default function AccountsView({ accounts }: AccountsViewProps) {
+export default function AccountsView({
+  accounts,
+  userRole,
+}: AccountsViewProps) {
   const [viewMode, setViewMode] = useState<"tree" | "table">("table");
 
   return (
@@ -40,17 +44,23 @@ export default function AccountsView({ accounts }: AccountsViewProps) {
         </div>
         <div className="flex items-center gap-10 mb-8">
           <TypographyH1>View accounts</TypographyH1>
-          <FormDialog trigger="Add account" title="Add account" icon={<Plus />}>
-            <AddAccount accounts={accounts} />
-          </FormDialog>
+          {userRole === "admin" && (
+            <FormDialog
+              trigger="Add account"
+              title="Add account"
+              icon={<Plus />}
+            >
+              <AddAccount accounts={accounts} />
+            </FormDialog>
+          )}
         </div>
 
         <TabsContent value="tree" className="mt-0">
-          <AccountsTree accounts={accounts} />
+          <AccountsTree accounts={accounts} userRole={userRole} />
         </TabsContent>
 
         <TabsContent value="table" className="mt-0">
-          <AccountsTable accounts={accounts} />
+          <AccountsTable accounts={accounts} userRole={userRole} />
         </TabsContent>
       </Tabs>
     </div>

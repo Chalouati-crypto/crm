@@ -32,10 +32,14 @@ import AddAppointment from "../appointments/add-appointment";
 export default function ContactsTable({
   accounts,
   userId,
+  userRole,
 }: {
   accounts: ClientAccount[];
   userId: string;
+  userRole: "admin" | "consultant";
 }) {
+  console.log("these are the accounts", accounts);
+
   const [open, setOpen] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
     null
@@ -94,7 +98,8 @@ export default function ContactsTable({
     }
     fetchContacts();
   }, [selectedAccountId, accounts]);
-
+  if (accounts.length === 0)
+    return <DataTable empty={true} columns={[]} data={[]} />;
   return (
     <div>
       <Popover open={open} onOpenChange={setOpen}>
@@ -117,7 +122,7 @@ export default function ContactsTable({
             filter={(value, search) => {
               // Custom filter function
               const account = accounts.find((acc) => acc.id === value);
-              return account?.name.toLowerCase().includes(search.toLowerCase())
+              return account?.name?.toLowerCase().includes(search.toLowerCase())
                 ? 1
                 : 0;
             }}
@@ -192,7 +197,12 @@ export default function ContactsTable({
         <Loader />
       ) : (
         <DataTable
-          columns={columns(handleEdit, handleDelete, handleAddAppointment)}
+          columns={columns(
+            handleEdit,
+            handleDelete,
+            handleAddAppointment,
+            userRole
+          )}
           data={contacts}
         />
       )}

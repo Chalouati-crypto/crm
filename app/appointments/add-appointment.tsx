@@ -1,4 +1,12 @@
 "use client";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { useAction } from "next-safe-action/hooks";
+import { formatDateLocal } from "@/lib/utils";
+import { upsertAppointment } from "@/server/actions/appointments";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,7 +18,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
 import {
   Select,
   SelectContent,
@@ -18,34 +25,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatDateLocal } from "@/lib/utils";
-import { upsertAppointment } from "@/server/actions/appointments";
+
 import { Appointment, AppointmentSchema } from "@/types/appointment-schema";
-import { Contact } from "@/types/contact-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useAction } from "next-safe-action/hooks";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import type { ClientAccountWithContacts } from "@/types/account-schema";
+import type { Contact } from "@/types/contact-schema";
 
 interface AddAppointmentProps {
   handleClose: () => void;
   appointment?: Appointment;
-  contacts: Contact[];
+  accountsWithContacts: ClientAccountWithContacts[];
   userId: string;
-  id?: string;
   contactToAppoint?: Contact;
 }
+
 export default function AddAppointment({
   handleClose,
   appointment,
-  contacts,
+  accountsWithContacts,
   userId,
   contactToAppoint,
 }: AddAppointmentProps) {
   const now = new Date();
   const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
-  const methods = useForm({
+
+  // Determine initial selected account based on contactToAppoint or appointment
+  const initialAccountId =
+    contactToAppoint?.accountId ||
+    accountsWithContacts.find((a) =>
+      appointment?.contactId
+        ? a.contacts.some((c) => c.id === appointment.contactId)
+        : false
+    )?.account.id;
+
+  const [selectedAccount, setSelectedAccount] = useState<string | undefined>(
+    initialAccountId
+  );
+
+  const methods = useForm<Appointment>({
     resolver: zodResolver(AppointmentSchema),
     defaultValues: {
       ...(appointment ? { id: appointment.id } : {}),
@@ -55,7 +71,7 @@ export default function AddAppointment({
       endTime: appointment?.endTime || oneHourLater,
       notes: appointment?.notes || "",
       status: appointment?.status || "scheduled",
-      userId: userId,
+      userId,
     },
   });
 
@@ -67,39 +83,78 @@ export default function AddAppointment({
   } = methods;
 
   useEffect(() => {
+    // If a contactToAppoint is passed, ensure we also select its account
     if (contactToAppoint) {
-      // Explicitly set both the Select value and form value
+      setSelectedAccount(contactToAppoint.accountId);
       setValue("contactId", contactToAppoint.id, { shouldValidate: true });
     }
   }, [contactToAppoint, setValue]);
+
   const { execute, status } = useAction(upsertAppointment, {
     onSuccess() {
-      console.log("the onsucess callback is working");
       toast.success(
-        `${appointment?.id ? "Modification" : "Ajout"} avec success`
+        `${appointment?.id ? "Modification" : "Ajout"} avec succès`
       );
-      console.log("this is the handle close function", handleClose);
-      handleClose?.();
+      handleClose();
     },
-    onError(error) {
+    onError(err) {
       toast.error("Une erreur est survenue", {
-        description: error.serverError || error.validationErrors?.join(", "),
+        description: err.serverError || err.validationErrors?.join(", "),
       });
     },
   });
+
   async function onSubmit(values: Appointment) {
-    // Here you would typically send the data to your API
-    console.log("these are the values", values);
     execute(values);
   }
-  useEffect(() => {
-    console.log("Form errors:", errors);
-  }, [errors]);
-  console.log("this is the contact to be appointed", contactToAppoint);
+
+  // Derive contacts for selected account
+  const contacts =
+    accountsWithContacts.find((a) => a.account.id === selectedAccount)
+      ?.contacts || [];
+
   return (
     <Form {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
         <div className="grid grid-cols-2 gap-4">
+          {/* Account Select */}
+          <FormField
+            control={control}
+            name="contactId"
+            render={() => (
+              <FormItem>
+                <FormLabel>Account</FormLabel>
+                <Select
+                  value={selectedAccount}
+                  onValueChange={(val) => {
+                    setSelectedAccount(val);
+                    setValue("contactId", "");
+                  }}
+                  disabled={!!contactToAppoint}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select account" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {accountsWithContacts.map(({ account }) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  {contactToAppoint
+                    ? "Account locked to the provided contact"
+                    : "Select an account first"}
+                </FormDescription>
+              </FormItem>
+            )}
+          />
+
+          {/* Contact Select */}
           <FormField
             control={control}
             name="contactId"
@@ -107,23 +162,14 @@ export default function AddAppointment({
               <FormItem>
                 <FormLabel>Contact</FormLabel>
                 <Select
+                  {...field}
+                  value={field.value}
                   onValueChange={field.onChange}
-                  disabled={!!contactToAppoint}
-                  value={contactToAppoint?.id || field.value}
+                  disabled={!!contactToAppoint || !selectedAccount}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select contact">
-                        {/* Display name when value is set */}
-                        {contactToAppoint
-                          ? `${contactToAppoint.firstName} ${contactToAppoint.lastName}`
-                          : field.value
-                          ? contacts.find((c) => c.id === field.value)
-                              ?.firstName +
-                            " " +
-                            contacts.find((c) => c.id === field.value)?.lastName
-                          : "Select contact"}
-                      </SelectValue>
+                      <SelectValue placeholder="Select contact" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -135,10 +181,12 @@ export default function AddAppointment({
                   </SelectContent>
                 </Select>
                 <FormMessage />
-                <FormDescription className="min-w-screen">
+                <FormDescription>
                   {contactToAppoint
                     ? "The contact has already been selected"
-                    : ""}
+                    : contacts.length > 0
+                      ? ""
+                      : "No contacts available for this account"}
                 </FormDescription>
               </FormItem>
             )}
@@ -146,6 +194,7 @@ export default function AddAppointment({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
+          {/* Start and End Time Fields */}
           <FormField
             control={control}
             name="startTime"
@@ -185,6 +234,7 @@ export default function AddAppointment({
           />
         </div>
 
+        {/* Purpose Field */}
         <FormField
           control={control}
           name="purpose"
@@ -199,6 +249,7 @@ export default function AddAppointment({
           )}
         />
 
+        {/* Notes Field */}
         <FormField
           control={control}
           name="notes"
@@ -213,29 +264,33 @@ export default function AddAppointment({
           )}
         />
 
-        <FormField
-          control={control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="canceled">Canceled</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Status Field */}
+        {appointment?.id && (
+          <FormField
+            control={control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select {...field}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="canceled">Canceled</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
+        {/* Action Buttons */}
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={handleClose}>
             Cancel
@@ -244,7 +299,7 @@ export default function AddAppointment({
             type="submit"
             className={`${status === "executing" ? "animate-pulse" : ""}`}
           >
-            Create Appointment
+            {appointment?.id ? "Update Appointment" : "Create Appointment"}
           </Button>
         </div>
       </form>
