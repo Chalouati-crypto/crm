@@ -29,11 +29,12 @@ import {
 import { Appointment, AppointmentSchema } from "@/types/appointment-schema";
 import type { ClientAccountWithContacts } from "@/types/account-schema";
 import type { Contact } from "@/types/contact-schema";
+import { FormError } from "@/components/ui/form-error";
 
 interface AddAppointmentProps {
   handleClose: () => void;
   appointment?: Appointment;
-  accountsWithContacts: ClientAccountWithContacts[];
+  accountsWithContacts?: ClientAccountWithContacts[]; // made optional
   userId: string;
   contactToAppoint?: Contact;
 }
@@ -41,7 +42,7 @@ interface AddAppointmentProps {
 export default function AddAppointment({
   handleClose,
   appointment,
-  accountsWithContacts,
+  accountsWithContacts = [], // default to empty array
   userId,
   contactToAppoint,
 }: AddAppointmentProps) {
@@ -83,12 +84,15 @@ export default function AddAppointment({
   } = methods;
 
   useEffect(() => {
-    // If a contactToAppoint is passed, ensure we also select its account
     if (contactToAppoint) {
       setSelectedAccount(contactToAppoint.accountId);
       setValue("contactId", contactToAppoint.id, { shouldValidate: true });
     }
   }, [contactToAppoint, setValue]);
+
+  useEffect(() => {
+    console.log("these are the current errors in the form", errors);
+  }, [errors]);
 
   const { execute, status } = useAction(upsertAppointment, {
     onSuccess() {
@@ -105,6 +109,7 @@ export default function AddAppointment({
   });
 
   async function onSubmit(values: Appointment) {
+    console.log(values);
     execute(values);
   }
 
@@ -118,41 +123,36 @@ export default function AddAppointment({
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
         <div className="grid grid-cols-2 gap-4">
           {/* Account Select */}
-          <FormField
-            control={control}
-            name="contactId"
-            render={() => (
-              <FormItem>
-                <FormLabel>Account</FormLabel>
-                <Select
-                  value={selectedAccount}
-                  onValueChange={(val) => {
-                    setSelectedAccount(val);
-                    setValue("contactId", "");
-                  }}
-                  disabled={!!contactToAppoint}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select account" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {accountsWithContacts.map(({ account }) => (
-                      <SelectItem key={account.id} value={account.id}>
-                        {account.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  {contactToAppoint
-                    ? "Account locked to the provided contact"
-                    : "Select an account first"}
-                </FormDescription>
-              </FormItem>
-            )}
-          />
+          <FormItem>
+            <FormLabel>Account</FormLabel>
+            <Select
+              value={selectedAccount}
+              onValueChange={(val) => {
+                setSelectedAccount(val);
+                // reset contact when account changes
+                setValue("contactId", "");
+              }}
+              disabled={!!contactToAppoint}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {accountsWithContacts.map(({ account }) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    {account.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              {contactToAppoint
+                ? "Account locked to the provided contact"
+                : "Select an account first"}
+            </FormDescription>
+          </FormItem>
 
           {/* Contact Select */}
           <FormField
@@ -162,9 +162,8 @@ export default function AddAppointment({
               <FormItem>
                 <FormLabel>Contact</FormLabel>
                 <Select
-                  {...field}
                   value={field.value}
-                  onValueChange={field.onChange}
+                  onValueChange={(val) => field.onChange(val)}
                   disabled={!!contactToAppoint || !selectedAccount}
                 >
                   <FormControl>

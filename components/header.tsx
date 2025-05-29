@@ -17,6 +17,7 @@ const adminNavigation = [
   { name: "Contacts", href: "/contacts" },
   { name: "Accounts", href: "/accounts" },
   { name: "Users", href: "/users" },
+  { name: "Appointments", href: "/appointments" },
   { name: "Surveys", href: "/surveys" },
 ];
 export default async function Header() {

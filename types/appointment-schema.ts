@@ -2,7 +2,11 @@ import { z } from "zod";
 
 export const AppointmentSchema = z.object({
   id: z.string().uuid().optional(),
-  contactId: z.string().uuid(),
+  contactId: z
+    .string()
+    .uuid({ message: "Please select a contact." })
+    .transform((val) => (val === "" ? undefined : val))
+    .refine((v) => v !== undefined, { message: "Contact is required." }),
   userId: z.string().uuid(),
   startTime: z.coerce.date(),
   endTime: z.coerce.date(),

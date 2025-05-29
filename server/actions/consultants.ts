@@ -2,7 +2,7 @@
 
 import { actionClient } from "@/lib/safe-actions";
 import { db } from "..";
-import { userAccounts } from "../schema";
+import { userAccounts, users } from "../schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -11,6 +11,11 @@ const AssignConsultantsSchema = z.object({
   accountId: z.string().uuid(),
   consultantIds: z.array(z.string().uuid()),
 });
+
+export async function getConsultants() {
+  return db.select().from(users).where(eq(users.role, "consultant"));
+}
+
 export const assignConsultants = actionClient
   .schema(AssignConsultantsSchema)
   .action(async ({ parsedInput }) => {

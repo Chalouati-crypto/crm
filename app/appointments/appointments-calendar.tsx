@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Trash2, Edit, Clock, Check, X } from "lucide-react";
+import { Trash2, Edit, Clock, Check, X, Eye } from "lucide-react";
 
 const calendarStyles = `
   /* Main calendar container */
@@ -40,6 +40,14 @@ const calendarStyles = `
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     overflow: hidden;
+    background-color: white;
+  }
+
+  /* Dark mode calendar container */
+  .dark .rbc-calendar {
+    border-color: #374151;
+    background-color: #1f2937;
+    color: #f9fafb;
   }
 
   /* Header styling */
@@ -47,6 +55,42 @@ const calendarStyles = `
     background-color: #f3f4f6;
     padding: 16px;
     border-bottom: 1px solid #e5e7eb;
+  }
+
+  .dark .rbc-toolbar {
+    background-color: #374151;
+    border-bottom-color: #4b5563;
+  }
+
+  .rbc-toolbar button {
+    color: #374151;
+    background-color: white;
+    border: 1px solid #d1d5db;
+  }
+
+  .dark .rbc-toolbar button {
+    color: #f9fafb;
+    background-color: #4b5563;
+    border-color: #6b7280;
+  }
+
+  .rbc-toolbar button:hover {
+    background-color: #f9fafb;
+  }
+
+  .dark .rbc-toolbar button:hover {
+    background-color: #6b7280;
+  }
+
+  .rbc-toolbar button.rbc-active {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+
+  .dark .rbc-toolbar button.rbc-active {
+    background-color: #2563eb;
+    border-color: #2563eb;
   }
 
   /* Date header cells */
@@ -58,9 +102,106 @@ const calendarStyles = `
     font-weight: 500;
   }
 
+  .dark .rbc-header {
+    background-color: #374151;
+    border-bottom-color: #4b5563;
+    color: #f3f4f6;
+  }
+
+  /* Month view date cells */
+  .rbc-month-view {
+    background-color: white;
+  }
+
+  .dark .rbc-month-view {
+    background-color: #1f2937;
+  }
+
+  .rbc-date-cell {
+    color: #374151;
+  }
+
+  .dark .rbc-date-cell {
+    color: #d1d5db;
+  }
+
+  .rbc-date-cell button {
+    color: #374151;
+  }
+
+  .dark .rbc-date-cell button {
+    color: #d1d5db;
+  }
+
+  .rbc-date-cell button:hover {
+    background-color: #f3f4f6;
+  }
+
+  .dark .rbc-date-cell button:hover {
+    background-color: #374151;
+  }
+
+  /* Off range dates */
+  .rbc-off-range {
+    color: #9ca3af;
+  }
+
+  .dark .rbc-off-range {
+    color: #6b7280;
+  }
+
+  .rbc-off-range button {
+    color: #9ca3af;
+  }
+
+  .dark .rbc-off-range button {
+    color: #6b7280;
+  }
+
   /* Time slots */
   .rbc-time-view .rbc-time-content {
     border-left: 1px solid #e5e7eb;
+    background-color: white;
+  }
+
+  .dark .rbc-time-view .rbc-time-content {
+    border-left-color: #4b5563;
+    background-color: #1f2937;
+  }
+
+  .rbc-time-slot {
+    border-top: 1px solid #f3f4f6;
+  }
+
+  .dark .rbc-time-slot {
+    border-top-color: #374151;
+  }
+
+  .rbc-timeslot-group {
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .dark .rbc-timeslot-group {
+    border-bottom-color: #4b5563;
+  }
+
+  /* Time gutter */
+  .rbc-time-gutter {
+    background-color: #f9fafb;
+    border-right: 1px solid #e5e7eb;
+  }
+
+  .dark .rbc-time-gutter {
+    background-color: #374151;
+    border-right-color: #4b5563;
+  }
+
+  .rbc-time-gutter .rbc-timeslot-group {
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .dark .rbc-time-gutter .rbc-timeslot-group {
+    border-bottom-color: #4b5563;
   }
 
   /* Events styling */
@@ -73,11 +214,34 @@ const calendarStyles = `
     color: white;
     cursor: pointer;
     transition: transform 0.1s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .rbc-event {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 
   .rbc-event:hover {
     transform: scale(1.02);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+
+  .dark .rbc-event:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  }
+
+  /* Read-only events styling */
+  .rbc-event.read-only {
+    cursor: default;
+  }
+
+  .rbc-event.read-only:hover {
+    transform: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .rbc-event.read-only:hover {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 
   /* Event colors based on status */
@@ -89,16 +253,35 @@ const calendarStyles = `
     background-color: #ef4444;
   }
 
+  /* Event focus styles */
+  .rbc-event:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  .dark .rbc-event:focus {
+    outline-color: #60a5fa;
+  }
+
   /* Time grid lines */
   .rbc-time-gutter {
     color: #6b7280;
     font-size: 14px;
   }
 
+  .dark .rbc-time-gutter {
+    color: #9ca3af;
+  }
+
   /* Agenda view table styling */
   .rbc-agenda-view table {
     width: 100%;
     border-collapse: collapse;
+    background-color: white;
+  }
+
+  .dark .rbc-agenda-view table {
+    background-color: #1f2937;
   }
 
   .rbc-agenda-view th,
@@ -106,11 +289,42 @@ const calendarStyles = `
     padding: 12px;
     border: 1px solid #e5e7eb;
     text-align: left;
+    color: #374151;
+  }
+
+  .dark .rbc-agenda-view th,
+  .dark .rbc-agenda-view td {
+    border-color: #4b5563;
+    color: #f3f4f6;
+  }
+
+  .rbc-agenda-view th {
+    background-color: #f9fafb;
+    font-weight: 600;
+  }
+
+  .dark .rbc-agenda-view th {
+    background-color: #374151;
   }
 
   /* Today highlight */
   .rbc-today {
     background-color: #f0f9ff;
+  }
+
+  .dark .rbc-today {
+    background-color: #1e3a8a;
+  }
+
+  /* Current time indicator */
+  .rbc-current-time-indicator {
+    background-color: #ef4444;
+    height: 2px;
+    z-index: 3;
+  }
+
+  .dark .rbc-current-time-indicator {
+    background-color: #f87171;
   }
 
   /* Button styling */
@@ -123,8 +337,39 @@ const calendarStyles = `
     transition: all 0.2s;
   }
 
+  .dark .rbc-btn {
+    color: #60a5fa;
+    border-color: #4b5563;
+    background: #374151;
+  }
+
   .rbc-btn:hover {
     background-color: #f3f4f6;
+    border-color: #d1d5db;
+  }
+
+  .dark .rbc-btn:hover {
+    background-color: #4b5563;
+    border-color: #6b7280;
+  }
+
+  .rbc-btn:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  .dark .rbc-btn:focus {
+    outline-color: #60a5fa;
+  }
+
+  /* Show more link */
+  .rbc-show-more {
+    color: #3b82f6;
+    font-weight: 500;
+  }
+
+  .dark .rbc-show-more {
+    color: #60a5fa;
   }
 
   /* Drag and drop styles */
@@ -141,6 +386,97 @@ const calendarStyles = `
   .rbc-addons-dnd-drag-preview {
     opacity: 0.5;
     pointer-events: none;
+  }
+
+  /* Disable drag and drop in read-only mode */
+  .rbc-calendar.read-only .rbc-addons-dnd-resize-ew-anchor {
+    display: none;
+  }
+  
+  .rbc-calendar.read-only .rbc-event {
+    cursor: pointer;
+  }
+
+  /* Week view day headers */
+  .rbc-row-bg {
+    background-color: white;
+  }
+
+  .dark .rbc-row-bg {
+    background-color: #1f2937;
+  }
+
+  .rbc-day-bg {
+    border-right: 1px solid #e5e7eb;
+  }
+
+  .dark .rbc-day-bg {
+    border-right-color: #4b5563;
+  }
+
+  /* Month view row backgrounds */
+  .rbc-month-row {
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .dark .rbc-month-row {
+    border-bottom-color: #4b5563;
+  }
+
+  /* Scrollbars for dark mode */
+  .dark .rbc-time-content::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .dark .rbc-time-content::-webkit-scrollbar-track {
+    background: #374151;
+  }
+
+  .dark .rbc-time-content::-webkit-scrollbar-thumb {
+    background: #6b7280;
+    border-radius: 4px;
+  }
+
+  .dark .rbc-time-content::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+
+  /* Selection styles */
+  .rbc-slot-selection {
+    background-color: rgba(59, 130, 246, 0.1);
+    border: 1px solid #3b82f6;
+  }
+
+  .dark .rbc-slot-selection {
+    background-color: rgba(96, 165, 250, 0.2);
+    border-color: #60a5fa;
+  }
+
+  /* Popup styles */
+  .rbc-overlay {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .rbc-overlay {
+    background-color: #374151;
+    border-color: #4b5563;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  }
+
+  .rbc-overlay-header {
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 8px 12px;
+    font-weight: 600;
+  }
+
+  .dark .rbc-overlay-header {
+    background-color: #4b5563;
+    border-bottom-color: #6b7280;
+    color: #f3f4f6;
   }
 `;
 
@@ -212,10 +548,12 @@ export const AppointmentCalendar = ({
   appointments,
   onAppointmentUpdate,
   onAppointmentDelete,
+  readOnly = false,
 }: {
   appointments: Appointment[];
   onAppointmentUpdate?: (appointment: Appointment) => void;
   onAppointmentDelete?: (appointmentId: string) => void;
+  readOnly?: boolean;
 }) => {
   const [events, setEvents] = useState<CalendarEvent[]>(() => {
     return mapAppointmentsToEvents(appointments || []);
@@ -250,6 +588,8 @@ export const AppointmentCalendar = ({
   };
 
   const handleEventDrop = ({ event, start, end }: any) => {
+    if (readOnly) return; // Prevent drag and drop in read-only mode
+
     const updatedEvents = events.map((existingEvent) => {
       if (existingEvent.resource.id === event.resource.id) {
         return {
@@ -268,6 +608,8 @@ export const AppointmentCalendar = ({
   };
 
   const handleEventResize = ({ event, start, end }: any) => {
+    if (readOnly) return; // Prevent resizing in read-only mode
+
     const updatedEvents = events.map((existingEvent) => {
       if (existingEvent.resource.id === event.resource.id) {
         return {
@@ -287,6 +629,8 @@ export const AppointmentCalendar = ({
 
   // Function to update appointment in the database
   const updateAppointmentTime = async (id: string, start: Date, end: Date) => {
+    if (readOnly) return; // Prevent updates in read-only mode
+
     try {
       // Find the existing appointment data
       const appointmentToUpdate = appointments.find((app) => app.id === id);
@@ -316,7 +660,7 @@ export const AppointmentCalendar = ({
   };
 
   const handleDeleteAppointment = async () => {
-    if (!selectedEvent) return;
+    if (readOnly || !selectedEvent) return; // Prevent deletion in read-only mode
 
     try {
       // Call the deleteAppointment server action
@@ -347,12 +691,14 @@ export const AppointmentCalendar = ({
   };
 
   const handleEditToggle = () => {
+    if (readOnly) return; // Prevent editing in read-only mode
     setIsEditMode(!isEditMode);
   };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    if (readOnly) return; // Prevent changes in read-only mode
     const { name, value } = e.target;
     setEditedAppointment((prev) => ({
       ...prev,
@@ -361,6 +707,8 @@ export const AppointmentCalendar = ({
   };
 
   const handleStatusChange = async (value: string) => {
+    if (readOnly) return; // Prevent status changes in read-only mode
+
     const newStatus = value as "scheduled" | "completed" | "canceled";
 
     try {
@@ -386,6 +734,8 @@ export const AppointmentCalendar = ({
   };
 
   const handleSaveChanges = async () => {
+    if (readOnly) return; // Prevent saving in read-only mode
+
     try {
       if (!editedAppointment.id) return;
 
@@ -442,6 +792,8 @@ export const AppointmentCalendar = ({
   const handleStatusUpdate = async (
     newStatus: "scheduled" | "completed" | "canceled"
   ) => {
+    if (readOnly) return; // Prevent status updates in read-only mode
+
     try {
       if (!selectedEvent) return;
 
@@ -461,9 +813,7 @@ export const AppointmentCalendar = ({
 
       if (result) {
         toast.success(
-          `Appointment ${
-            newStatus === "canceled" ? "canceled" : "marked as complete"
-          } successfully`
+          `Appointment ${newStatus === "canceled" ? "canceled" : "marked as complete"} successfully`
         );
 
         // Update local state
@@ -494,11 +844,15 @@ export const AppointmentCalendar = ({
     }
   };
 
+  // Choose the appropriate calendar component based on read-only mode
+  const CalendarComponent = readOnly ? Calendar : DnDCalendar;
+
   return (
     <>
       <style>{calendarStyles}</style>
       <div className="h-[800px] p-4">
-        <DnDCalendar
+        <CalendarComponent
+          className={readOnly ? "read-only" : ""}
           localizer={localizer}
           events={events}
           startAccessor="start"
@@ -506,10 +860,10 @@ export const AppointmentCalendar = ({
           defaultView="week"
           views={["month", "week", "day"]}
           onSelectEvent={handleEventClick}
-          onEventDrop={handleEventDrop}
-          onEventResize={handleEventResize}
-          resizable
-          selectable
+          onEventDrop={readOnly ? undefined : handleEventDrop}
+          onEventResize={readOnly ? undefined : handleEventResize}
+          resizable={!readOnly}
+          selectable={!readOnly}
           // Add timezone property to ensure consistent display
           timezone="local"
           eventPropGetter={(event: CalendarEvent) => ({
@@ -523,6 +877,7 @@ export const AppointmentCalendar = ({
               borderRadius: "4px",
               border: "none",
             },
+            className: readOnly ? "read-only" : "",
           })}
         />
       </div>
@@ -532,33 +887,42 @@ export const AppointmentCalendar = ({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {isEditMode ? "Edit Appointment" : "Appointment Details"}
+              {readOnly
+                ? "Appointment Details"
+                : isEditMode
+                  ? "Edit Appointment"
+                  : "Appointment Details"}
             </DialogTitle>
           </DialogHeader>
-          {editedAppointment?.status === "scheduled" && !isEditMode && (
-            <div className="flex gap-2 justify-end w-full ">
-              <Button
-                variant="outline"
-                className="border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
-                size="sm"
-                onClick={() => handleStatusUpdate("canceled")}
-              >
-                <X />
-              </Button>
-              <Button
-                variant="outline"
-                className="border-green-200 bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700"
-                size="sm"
-                onClick={() => handleStatusUpdate("completed")}
-              >
-                <Check />
-              </Button>
-            </div>
-          )}
+
+          {/* Quick action buttons - only show for non-admin users */}
+          {!readOnly &&
+            editedAppointment?.status === "scheduled" &&
+            !isEditMode && (
+              <div className="flex gap-2 justify-end w-full ">
+                <Button
+                  variant="outline"
+                  className="border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
+                  size="sm"
+                  onClick={() => handleStatusUpdate("canceled")}
+                >
+                  <X />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-green-200 bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700"
+                  size="sm"
+                  onClick={() => handleStatusUpdate("completed")}
+                >
+                  <Check />
+                </Button>
+              </div>
+            )}
+
           {selectedEvent && (
             <div className="space-y-4">
-              {isEditMode ? (
-                // Edit Mode
+              {!readOnly && isEditMode ? (
+                // Edit Mode - only for non-admin users
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="purpose">Purpose</Label>
@@ -682,20 +1046,29 @@ export const AppointmentCalendar = ({
                       </p>
                     </div>
                   )}
+
+                  {readOnly && (
+                    <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-700">
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                        <Eye className="mr-2 h-4 w-4" />
+                        <span>Read-only view - No editing permissions</span>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
           )}
 
           <DialogFooter className="flex justify-between sm:justify-between">
-            {isEditMode ? (
+            {!readOnly && isEditMode ? (
               <>
                 <Button variant="outline" onClick={() => setIsEditMode(false)}>
                   Cancel
                 </Button>
                 <Button onClick={handleSaveChanges}>Save Changes</Button>
               </>
-            ) : (
+            ) : !readOnly ? (
               <div className="w-full flex flex-wrap gap-2 justify-between">
                 <div className="flex gap-2">
                   <Button
@@ -716,6 +1089,10 @@ export const AppointmentCalendar = ({
                   </Button>
                 </div>
               </div>
+            ) : (
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Close
+              </Button>
             )}
           </DialogFooter>
         </DialogContent>
