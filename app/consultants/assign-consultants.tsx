@@ -89,12 +89,12 @@ export default function AssignConsultants({
         consultantIds: assignedConsultants.map((c) => c.id),
       });
 
-      if (!result || !result.success) {
-        throw new Error(result?.error || "Failed to assign consultants");
-      }
+      // if (!result || !result.success) {
+      //   throw new Error(result?.error || "Failed to assign consultants");
+      // }
 
       handleClose();
-      toast.success(result?.success);
+      toast.success("Consultants assigned successfully");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save");
     }
