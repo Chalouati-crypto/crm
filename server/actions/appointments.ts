@@ -60,7 +60,7 @@ export const upsertAppointment = actionClient
 
             await resend.emails.send({
               from: "onboarding@resend.dev", // Must be verified domain
-              to: contact.email,
+              to: "arijselmi6@gmail.com",
               subject: "Feedback Request",
               react: SurveyEmail({ surveyLink }), // Use react instead of html
             });

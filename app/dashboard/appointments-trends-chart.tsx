@@ -59,7 +59,7 @@ export function AppointmentTrendsChart() {
     <Card className="h-fit bg-purple-50/70 border-0 shadow-sm backdrop-blur-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle>Patient Visits</CardTitle>
+          <CardTitle>Appointments</CardTitle>
           <div className="flex gap-2">
             <Button
               variant={view === "monthly" ? "default" : "outline"}

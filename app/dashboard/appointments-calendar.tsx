@@ -127,16 +127,19 @@ export function AppointmentCalendar() {
                 <div
                   key={`${timeSlot.id}-day-${dayIndex}`}
                   className={`
-                    aspect-square rounded-lg flex items-center justify-center text-sm font-medium cursor-pointer transition-colors
+                    aspect-square rounded-lg 
+                    flex items-center justify-center 
+                    text-sm font-medium cursor-pointer 
+                    transition-colors
                     ${
-                      day.hasAppointment && Math.random() > 0.3
-                        ? "bg-[#952CA7] text-white hover:bg-purple-700"
+                      day.hasAppointment
+                        ? "bg-[#952ca7] text-white hover:bg-purple-700"
                         : "bg-purple-100 text-purple-300 hover:bg-purple-200"
                     }
                   `}
                   title={
-                    day.hasAppointment && Math.random() > 0.3
-                      ? `${day.appointmentCount || 1} appointment(s)`
+                    day.hasAppointment
+                      ? `${day.appointmentCount || 1} appointment${day.appointmentCount === 1 ? "" : "s"}`
                       : "No appointments"
                   }
                 ></div>

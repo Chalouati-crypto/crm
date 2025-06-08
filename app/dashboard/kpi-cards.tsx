@@ -14,14 +14,7 @@ interface KPICardProps {
   trend?: number;
 }
 
-function KPICard({
-  title,
-  subtitle,
-  value,
-  description,
-  icon,
-  trend,
-}: KPICardProps) {
+function KPICard({ title, subtitle, value, description, icon }: KPICardProps) {
   return (
     <Card className="bg-purple-50/70 border-0 shadow-sm flex-shrink-0 w-72 hover:shadow-md transition-shadow backdrop-blur-sm">
       <CardContent className="p-6">
@@ -81,9 +74,9 @@ export default function KPICards() {
             icon: <Calendar className="w-6 h-6" />,
           },
           {
-            title: `${data.activeAccounts}p`,
-            subtitle: "",
-            value: "",
+            title: `Active contacts`,
+            subtitle: "Contacts",
+            value: data.activeAccounts,
             description: "Active contacts",
             icon: <Users className="w-6 h-6" />,
           },
