@@ -1,77 +1,94 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getCalendarData } from "@/server/actions/calendar-queries"; // Update import path
 
-interface CalendarDay {
-  date: number;
-  hasAppointment: boolean;
-  appointmentCount?: number;
+interface AppointmentCalendarData {
+  date: Date;
+  appointments: {
+    id: string;
+    startTime: Date;
+    endTime: Date;
+    purpose: string;
+    contactName: string;
+    status: string;
+  }[];
 }
 
-interface CalendarWeek {
-  days: CalendarDay[];
+interface CalendarDay {
+  date: Date;
+  appointments: any[]; // Adjusted to use actual appointment data
 }
 
 export function AppointmentCalendar() {
-  const [currentWeek, setCurrentWeek] = useState(0);
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
+    const today = new Date();
+    const sunday = new Date(today);
+    sunday.setDate(today.getDate() - today.getDay()); // Set to Sunday
+    sunday.setHours(0, 0, 0, 0);
+    return sunday;
+  });
+  const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const sampleWeeks: CalendarWeek[] = [
-    {
-      days: [
-        { date: 1, hasAppointment: false },
-        { date: 2, hasAppointment: true, appointmentCount: 3 },
-        { date: 3, hasAppointment: true, appointmentCount: 2 },
-        { date: 4, hasAppointment: true, appointmentCount: 4 },
-        { date: 5, hasAppointment: true, appointmentCount: 1 },
-        { date: 6, hasAppointment: false },
-        { date: 7, hasAppointment: false },
-      ],
-    },
-    {
-      days: [
-        { date: 8, hasAppointment: false },
-        { date: 9, hasAppointment: true, appointmentCount: 2 },
-        { date: 10, hasAppointment: true, appointmentCount: 3 },
-        { date: 11, hasAppointment: true, appointmentCount: 1 },
-        { date: 12, hasAppointment: true, appointmentCount: 2 },
-        { date: 13, hasAppointment: true, appointmentCount: 4 },
-        { date: 14, hasAppointment: false },
-      ],
-    },
-    {
-      days: [
-        { date: 15, hasAppointment: false },
-        { date: 16, hasAppointment: true, appointmentCount: 1 },
-        { date: 17, hasAppointment: true, appointmentCount: 2 },
-        { date: 18, hasAppointment: true, appointmentCount: 3 },
-        { date: 19, hasAppointment: true, appointmentCount: 1 },
-        { date: 20, hasAppointment: false },
-        { date: 21, hasAppointment: false },
-      ],
-    },
+  // Time slots configuration
+  const timeSlots = [
+    { id: "slot-1", label: "9AM", start: 9, end: 11 },
+    { id: "slot-2", label: "11AM", start: 11, end: 13 },
+    { id: "slot-3", label: "1PM", start: 13, end: 15 },
+    { id: "slot-4", label: "3PM", start: 15, end: 17 },
+    { id: "slot-5", label: "5PM", start: 17, end: 19 },
   ];
 
   const dayLabels = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-  const timeSlots = [
-    { id: "slot-1", label: "9AM" },
-    { id: "slot-2", label: "11AM" },
-    { id: "slot-3", label: "1PM" },
-    { id: "slot-4", label: "3PM" },
-    { id: "slot-5", label: "5PM" },
-  ];
 
+  // Fetch calendar data
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getCalendarData(new Date(currentWeekStart));
+        setCalendarDays(
+          data.map((day) => ({
+            date: day.date,
+            appointments: day.appointments,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentWeekStart]);
+
+  // Week navigation
   const navigateWeek = (direction: "prev" | "next") => {
-    if (direction === "prev" && currentWeek > 0) {
-      setCurrentWeek(currentWeek - 1);
-    } else if (direction === "next" && currentWeek < sampleWeeks.length - 1) {
-      setCurrentWeek(currentWeek + 1);
-    }
+    const newDate = new Date(currentWeekStart);
+    newDate.setDate(newDate.getDate() + (direction === "prev" ? -7 : 7));
+    setCurrentWeekStart(newDate);
   };
 
-  const currentWeekData = sampleWeeks[currentWeek];
+  // Check if time slot has appointments
+  const hasAppointmentInSlot = (
+    day: CalendarDay,
+    slot: (typeof timeSlots)[0]
+  ) => {
+    return day.appointments.some((appt) => {
+      const hour = new Date(appt.startTime).getHours();
+      return hour >= slot.start && hour < slot.end;
+    });
+  };
+
+  // Get appointment count for a day
+  const getAppointmentCount = (day: CalendarDay) => {
+    return day.appointments.length;
+  };
 
   return (
     <Card className="w-full h-fit bg-purple-50/70 border-0 shadow-sm backdrop-blur-sm">
@@ -85,7 +102,7 @@ export function AppointmentCalendar() {
               variant="ghost"
               size="sm"
               onClick={() => navigateWeek("prev")}
-              disabled={currentWeek === 0}
+              disabled={isLoading}
               className="h-8 w-8 p-0"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -94,7 +111,7 @@ export function AppointmentCalendar() {
               variant="ghost"
               size="sm"
               onClick={() => navigateWeek("next")}
-              disabled={currentWeek === sampleWeeks.length - 1}
+              disabled={isLoading}
               className="h-8 w-8 p-0"
             >
               <ChevronRight className="h-4 w-4" />
@@ -117,36 +134,48 @@ export function AppointmentCalendar() {
         </div>
 
         {/* Calendar grid */}
-        <div className="space-y-1">
-          {timeSlots.map((timeSlot) => (
-            <div key={timeSlot.id} className="grid grid-cols-8 gap-1">
-              <div className="flex items-center justify-center text-sm font-medium text-gray-600 py-2">
-                {timeSlot.label}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <p>Loading appointments...</p>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {timeSlots.map((timeSlot) => (
+              <div key={timeSlot.id} className="grid grid-cols-8 gap-1">
+                <div className="flex items-center justify-center text-sm font-medium text-gray-600 py-2">
+                  {timeSlot.label}
+                </div>
+                {calendarDays.map((day, dayIndex) => {
+                  const hasAppointment = hasAppointmentInSlot(day, timeSlot);
+                  const appointmentCount = getAppointmentCount(day);
+                  return (
+                    <div
+                      key={`${timeSlot.id}-day-${dayIndex}`}
+                      className={`
+                        aspect-square rounded-lg 
+                        flex items-center justify-center 
+                        text-sm font-medium cursor-pointer 
+                        transition-colors
+                        ${
+                          hasAppointment
+                            ? "bg-[#952ca7] text-white hover:bg-purple-700"
+                            : "bg-purple-100 text-purple-300 hover:bg-purple-200"
+                        }
+                      `}
+                      title={
+                        hasAppointment
+                          ? `${appointmentCount} appointment${
+                              appointmentCount === 1 ? "" : "s"
+                            }`
+                          : "No appointments"
+                      }
+                    ></div>
+                  );
+                })}
               </div>
-              {currentWeekData.days.map((day, dayIndex) => (
-                <div
-                  key={`${timeSlot.id}-day-${dayIndex}`}
-                  className={`
-                    aspect-square rounded-lg 
-                    flex items-center justify-center 
-                    text-sm font-medium cursor-pointer 
-                    transition-colors
-                    ${
-                      day.hasAppointment
-                        ? "bg-[#952ca7] text-white hover:bg-purple-700"
-                        : "bg-purple-100 text-purple-300 hover:bg-purple-200"
-                    }
-                  `}
-                  title={
-                    day.hasAppointment
-                      ? `${day.appointmentCount || 1} appointment${day.appointmentCount === 1 ? "" : "s"}`
-                      : "No appointments"
-                  }
-                ></div>
-              ))}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Legend */}
         <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-purple-200">
